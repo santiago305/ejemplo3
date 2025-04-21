@@ -3,10 +3,10 @@ FROM node:20 AS frontend
 
 WORKDIR /app
 
-COPY ./frontend/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY ./frontend ./
+COPY resources ./resources
 RUN npm run build
 
 # Fase 2: Backend Laravel
@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y \
     nginx \
     supervisor\
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd zip pdo pdo_mysql
+    && docker-php-ext-install pdo_pgsql pgsql
+    # && docker-php-ext-install gd zip pdo pdo_mysql
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -51,6 +52,8 @@ RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache
 # Permisos
 RUN chown -R www-data:www-data /var/www
 RUN chmod -R 775 storage bootstrap/cache
+
+# RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
