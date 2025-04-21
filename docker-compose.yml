@@ -4,13 +4,26 @@ services:
   app:
     build:
       context: .
+      dockerfile: Dockerfile
+    container_name: laravel-app
     ports:
-      - "8080:80"
+      - "8000:80"  # El 80 del contenedor se expone como 8000 en tu máquina
     volumes:
-      - .:/var/www
-    networks:
-      - laravel
+      - .:/var/www/html
+    depends_on:
+      - db
 
-networks:
-  laravel:
-    driver: bridge
+  db:
+    image: postgres:15
+    container_name: pg-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: laravel
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
