@@ -1,4 +1,6 @@
-# Fase 1: Build del frontend
+# ==========================================
+# Fase 1: Construcción del Frontend (React)
+# ==========================================
 FROM node:20 AS frontend
 
 WORKDIR /app
@@ -6,77 +8,55 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY resources ./resources
+COPY resources/ ./resources/
+COPY vite.config.js ./
+COPY public ./public
+COPY .env ./
+
 RUN npm run build
 
-# Fase 2: Backend Laravel
+
+# ==========================================
+# Fase 2: Backend Laravel + PHP + Composer
+# ==========================================
 FROM php:8.2-fpm AS backend
 
-# Instalar dependencias del sistema
+# Instalar extensiones y herramientas
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    libpq-dev \
-    git \
-    unzip \
-    curl \
-    nginx \
-    supervisor\
+    libpng-dev libjpeg-dev libfreetype6-dev \
+    libzip-dev libpq-dev zip unzip git curl nginx supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_pgsql pgsql
-    # && docker-php-ext-install gd zip pdo pdo_mysql
+    && docker-php-ext-install gd zip pdo_pgsql pgsql
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Crear directorio de trabajo
 WORKDIR /var/www
 
-# Copiar todo el proyecto Laravel
+# Copiar proyecto Laravel
 COPY . .
 
 # Instalar dependencias de PHP
 RUN composer install --no-interaction --optimize-autoloader
 
-# Si usas Vite y ya configuraste el build en public/build, este paso NO es necesario:
-COPY --from=frontend /app/dist /var/www/public/build
+# Copiar frontend ya compilado por Vite
+COPY --from=frontend /app/public/build /var/www/public/build
 
-# Comandos artisan (excepto migrate)
-# RUN php artisan key:generate
-RUN php artisan optimize
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
-RUN php artisan storage:link
-RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache
+# Comandos Laravel
+RUN php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache \
+ && php artisan storage:link
+
 # Permisos
-RUN chown -R www-data:www-data /var/www
-RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www \
+ && chmod -R 775 storage bootstrap/cache
 
-# RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache
-
-COPY ./nginx.conf /etc/nginx/nginx.conf
-
-# Supervisor para iniciar nginx + php-fpm juntos
-COPY ./supervisord.conf /etc/supervisord.conf
+# Configuración de Nginx y Supervisor
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 80
+
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
-# FROM nginx:stable-alpine
-
-# # Copiar configuración personalizada de nginx
-# COPY ./nginx.conf /etc/nginx/nginx.conf
-
-# # Copiar el código desde backend
-# COPY --from=backend /var/www /var/www
-
-# # Copiar el socket PHP-FPM desde la fase backend
-# COPY --from=backend /usr/local/etc/php-fpm.d/zz-docker.conf /usr/local/etc/php-fpm.d/zz-docker.conf
-# COPY --from=backend /usr/local/sbin/php-fpm /usr/local/sbin/php-fpm
-
-# # Exponer puerto HTTP
-# EXPOSE 80
-
-# # Comando por defecto
-# CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]

@@ -1,6 +1,44 @@
+# Archivos y carpetas de Laravel que no necesitas en la imagen
 /vendor
 /node_modules
-/storage/app
-/storage/logs
-.env
+/storage/*.key
+/storage/app/*
+/storage/debugbar/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Archivos de configuración y entorno
+# .env
+# .env.*.local
+# .env.local
+
+# Configuración de desarrollo
+.idea
+.vscode
+.DS_Store
+*.log
+*.sqlite
+*.bak
+*.swp
+
+# Archivos de control de versiones
+.git
+.gitignore
+.gitattributes
+
+# Archivos de construcción
+npm-debug.log
+yarn-error.log
+composer.lock
+package-lock.json
+
+# Evita duplicados al copiar frontend
 /public/build
+
+# Ignora los archivos de Docker si no los necesitas dentro de la imagen
+docker-compose.yml
+docker/
+Dockerfile
+.dockerignore
