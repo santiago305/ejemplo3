@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     curl \
+    nginx supervisor\
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd zip pdo pdo_mysql
 
@@ -36,7 +37,7 @@ COPY . .
 RUN composer install --no-interaction --optimize-autoloader
 
 # Si usas Vite y ya configuraste el build en public/build, este paso NO es necesario:
-# COPY --from=frontend /app/dist /var/www/public/build
+COPY --from=frontend /app/dist /var/www/public/build
 
 # Comandos artisan (excepto migrate)
 # RUN php artisan key:generate
@@ -45,13 +46,18 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
 RUN php artisan storage:link
-
+RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache
 # Permisos
 RUN chown -R www-data:www-data /var/www
 RUN chmod -R 775 storage bootstrap/cache
 
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+# Supervisor para iniciar nginx + php-fpm juntos
+COPY ./supervisord.conf /etc/supervisord.conf
+
 EXPOSE 80
-CMD ["php-fpm"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 # FROM nginx:stable-alpine
 
 # # Copiar configuración personalizada de nginx
