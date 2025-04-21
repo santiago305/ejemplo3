@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     curl \
-    nginx supervisor\
+    nginx \
+    supervisor\
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd zip pdo pdo_mysql
 
