@@ -30,4 +30,12 @@ WORKDIR /var/www/html
 COPY . .
 
 # Permisos
-RUN chown -R www-data:www-data storage bootstrap/cache
+# RUN chown -R www-data:www-data storage bootstrap/cache
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
+    && cp .env.example .env \
+    && php artisan key:generate \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
