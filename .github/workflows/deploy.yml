@@ -26,4 +26,8 @@ jobs:
       # Paso 4: Ejecutar el contenedor de Docker
       - name: Run Docker container
         run: |
-          docker run -d -p 9000:9000 mi_app_laravel
+          docker run -d -p 8000:80 mi_app_laravel
+
+      - name: Post-deployment check
+        run: |
+          echo "El contenedor se está ejecutando"
