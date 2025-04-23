@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    # sqlite3 \
+    libsqlite3-dev \
     && docker-php-ext-install pdo pdo_sqlite mbstring zip exif pcntl bcmath \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
