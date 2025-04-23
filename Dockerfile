@@ -40,3 +40,9 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
     && php artisan view:cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
+
+RUN apt-get install -y nodejs npm
+RUN npm install
+
+# Generar el build de React
+RUN npm run build
