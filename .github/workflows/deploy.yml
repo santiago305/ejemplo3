@@ -2,8 +2,10 @@ name: Deploy Laravel Application
 
 on:
   push:
-    branches:
-      - master  # Desplegar cuando se haga un push a la rama master
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  # Desplegar cuando se haga un push a la rama master
 
 jobs:
   deploy:
@@ -12,21 +14,21 @@ jobs:
     steps:
       # Paso 1: Checkout del código
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Paso 2: Configurar Docker
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
 
       # Paso 3: Construir la imagen de Docker
       - name: Build Docker image
         run: |
-          docker build -t mi_app_laravel .
+          docker build -t aluvimueble .
 
       # Paso 4: Ejecutar el contenedor de Docker
       - name: Run Docker container
         run: |
-          docker run -d -p 8000:80 mi_app_laravel
+          docker run -d -p 8000:80 aluvimueble
 
       - name: Post-deployment check
         run: |
